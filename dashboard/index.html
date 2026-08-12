@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torre de control logística · 1S 2026 · Proyecto de portafolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --papel:#F4F6F8;      /* fondo gris frío, sala de operaciones */
+    --tarjeta:#FFFFFF;
+    --tinta:#16202B;      /* azul-tinta */
+    --acero:#5B6B7C;      /* texto secundario */
+    --linea:#D9DFE6;
+    --rosa:#D5127D;       /* la señal: solo lo que está roto se pinta de rosa */
+    --rosa-suave:#FBE7F2;
+    --petroleo:#0F766E;   /* lo sano / el control */
+    --gris-serie:#9AA7B4; /* series de contexto */
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--papel);color:var(--tinta);
+       font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:16px;line-height:1.55}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+
+  /* ---------- encabezado ---------- */
+  header{padding:56px 0 12px}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
+           color:var(--acero);text-transform:uppercase}
+  .eyebrow .dot{color:var(--rosa)}
+  h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(30px,4.6vw,46px);
+     letter-spacing:-.02em;line-height:1.08;margin:14px 0 10px;max-width:20ch}
+  h1 .rosa{color:var(--rosa)}
+  .sub{color:var(--acero);max-width:62ch}
+  .aviso{display:inline-block;margin-top:14px;padding:4px 10px;border:1px solid var(--linea);
+         border-radius:999px;font-size:12.5px;color:var(--acero);background:var(--tarjeta)}
+
+  /* ---------- tira de KPIs ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:34px 0 8px;
+        border-top:2px solid var(--tinta);border-bottom:1px solid var(--linea)}
+  .kpi{padding:18px 18px 16px;border-left:1px solid var(--linea)}
+  .kpi:first-child{border-left:none;padding-left:0}
+  .kpi b{display:block;font-family:'IBM Plex Mono',monospace;font-weight:500;
+         font-size:clamp(22px,3vw,32px);letter-spacing:-.01em}
+  .kpi span{font-size:12.5px;color:var(--acero);text-transform:uppercase;letter-spacing:.08em}
+  .kpi.alerta b{color:var(--rosa)}
+
+  /* ---------- secciones ---------- */
+  section{margin:46px 0}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
+          color:var(--rosa);text-transform:uppercase}
+  h2{font-family:'Archivo',sans-serif;font-weight:700;font-size:clamp(20px,2.6vw,27px);
+     letter-spacing:-.015em;margin:6px 0 6px;max-width:34ch}
+  .lectura{color:var(--acero);max-width:70ch;margin-bottom:16px}
+  .card{background:var(--tarjeta);border:1px solid var(--linea);border-radius:10px;
+        padding:22px;box-shadow:0 1px 2px rgba(22,32,43,.04)}
+  .chart-h{position:relative;height:340px}
+  @media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}.kpi{padding-left:0;border-left:none}
+                          .chart-h{height:290px}}
+
+  /* toggle de la trampa del KPI */
+  .toggle{display:inline-flex;border:1px solid var(--linea);border-radius:8px;overflow:hidden;margin-bottom:14px}
+  .toggle button{font:600 13.5px 'IBM Plex Sans',sans-serif;padding:8px 14px;border:0;cursor:pointer;
+                 background:var(--tarjeta);color:var(--acero)}
+  .toggle button[aria-pressed="true"]{background:var(--tinta);color:#fff}
+  .toggle button:focus-visible{outline:2px solid var(--rosa);outline-offset:-2px}
+  .nota-toggle{font-size:14px;color:var(--acero);margin-top:10px;min-height:1.5em}
+  .nota-toggle b{color:var(--rosa)}
+
+  /* tabla de acciones */
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;letter-spacing:.1em;
+     text-transform:uppercase;color:var(--acero);text-align:left;padding:10px 12px;
+     border-bottom:2px solid var(--tinta)}
+  td{padding:12px;border-bottom:1px solid var(--linea);vertical-align:top}
+  td:first-child{font-weight:600}
+  .pill{display:inline-block;background:var(--rosa-suave);color:var(--rosa);border-radius:6px;
+        padding:1px 8px;font:500 13px 'IBM Plex Mono',monospace;white-space:nowrap}
+
+  footer{margin:64px 0 40px;padding-top:18px;border-top:1px solid var(--linea);
+         color:var(--acero);font-size:14px}
+  footer .stack{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+  a{color:var(--tinta)}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Torre de control logística <span class="dot">●</span> Retail omnicanal · 1S 2026</p>
+  <h1>El OTIF de 95.7% esconde <span class="rosa">dos incendios</span> localizados</h1>
+  <p class="sub">Diagnóstico de cumplimiento de entregas sobre 59,615 envíos: la métrica global
+     cumple la meta, pero un CEDIS se degradó estructuralmente desde abril y un transportista
+     regional arrastra a toda una zona. Todo lo <b style="color:var(--rosa)">rosa</b> en esta
+     página es lo que requiere acción.</p>
+  <span class="aviso">Datos sintéticos generados para este caso de estudio · Proyecto de portafolio, sin afiliación con ninguna empresa</span>
+</header>
+
+<div class="kpis" role="list">
+  <div class="kpi" role="listitem"><b>95.7%</b><span>OTIF operativo · semestre</span></div>
+  <div class="kpi" role="listitem"><b>77 h</b><span>P90 ciclo orden → disponible</span></div>
+  <div class="kpi" role="listitem"><b>59,615</b><span>envíos válidos (de 62,420 crudos)</span></div>
+  <div class="kpi alerta" role="listitem"><b>$10.0 M</b><span>MXN entregados fuera de promesa</span></div>
+</div>
+
+<section>
+    <p class="kicker">Definición · La trampa del reloj</p>
+  <h2>¿Contra qué reloj medimos Click&nbsp;&amp;&nbsp;Collect?</h2>
+  <p class="lectura">Un mismo canal, dos definiciones de “a tiempo”. Con el reloj operativo
+     (pedido <i>disponible</i> vs. promesa) la logística cumple; con el reloj del cliente
+     (pedido <i>recogido</i> vs. promesa) el canal parece desplomarse, pero ese tiempo
+     extra es la agenda del cliente, no la operación. Alterna entre los dos relojes:</p>
+  <div class="card">
+    <div class="toggle" role="group" aria-label="Definición del KPI">
+      <button id="btnOp" aria-pressed="true">Reloj operativo</button>
+      <button id="btnPe" aria-pressed="false">Reloj del cliente</button>
+    </div>
+    <div class="chart-h" style="height:260px"><canvas id="chCanal"></canvas></div>
+    <p class="nota-toggle" id="notaToggle"></p>
+  </div>
+</section>
+
+<section>
+    <p class="kicker">Hallazgo 1 · CEDIS</p>
+  <h2>Tultitlán se degrada desde abril y no se recuperó tras el pico de mayo</h2>
+  <p class="lectura">Mediana de horas de surtido por mes. En mayo (Hot Sale) todos los CEDIS
+     suben por volumen: es un efecto estacional. En junio, cuatro CEDIS regresan a
+     ~8 h; la línea rosa se queda en 14.3. El pico afecta a todos pero el deterioro
+     estructural corresponde a uno solo.</p>
+  <div class="card"><div class="chart-h"><canvas id="chCedis"></canvas></div></div>
+</section>
+
+<section>
+    <p class="kicker">Hallazgo 2 · Transporte</p>
+  <h2>Problema con transportista en una sola zona</h2>
+  <p class="lectura">El ranking crudo de tiendas señalaba a Occidente completo. Al comparar
+     dentro de la zona: TransBajio opera 25&nbsp;puntos por debajo de sus pares
+     <i>en la misma geografía</i> (y se comporta normal en otras zonas). Con
+     intervalos de confianza, solo 1 de 61 tiendas es significativamente peor
+     que su zona.</p>
+  <div class="card"><div class="chart-h" style="height:280px"><canvas id="chTrans"></canvas></div></div>
+</section>
+
+<section>
+    <p class="kicker">Hallazgo 3 · Tiendas / experiencia</p>
+  <h2>Seis mostradores triplican el tiempo de recolección</h2>
+  <p class="lectura">Horas desde “disponible” hasta que el cliente recoge (mediana, Click &amp;
+     Collect). El paquete llegó a tiempo; el retraso vive en la notificación o
+     el mostrador.</p>
+  <div class="card"><div class="chart-h" style="height:300px"><canvas id="chCC"></canvas></div></div>
+</section>
+
+<section>
+    <p class="kicker">Hallazgo 4 · Big Ticket</p>
+  <h2>31% de los envíos, 87% del valor: la mercancía cara pasa por los nodos rotos</h2>
+  <p class="lectura">Big Ticket (línea blanca, muebles, electrónica) tiene incluso mejor OTIF
+     que el resto, y aun así concentra el 75% del valor entregado fuera de
+     promesa. Un punto de OTIF aquí vale ~$3.3&nbsp;M de mercancía; su tiempo
+     extra vive en el surtido y en la entrega final al cliente, justo donde se
+     hacen presentes los hallazgos 1 y 2.</p>
+  <div class="card"><div class="chart-h" style="height:220px"><canvas id="chBT"></canvas></div></div>
+</section>
+
+<section>
+  <p class="kicker">Acciones</p>
+  <h2>Tres movimientos sin capex antes del Buen Fin</h2>
+  <div class="card" style="padding:8px 22px 14px">
+    <table>
+      <thead><tr><th>Acción</th><th>Dueño</th><th>Plazo</th><th>Impacto esperado</th></tr></thead>
+      <tbody>
+        <tr><td>Redefinir el OTIF logístico al corte “disponible” y reportar la recolección como métrica de tienda</td>
+            <td>Ciencia de Datos + Operaciones</td><td><span class="pill">2 sem</span></td>
+            <td>Visibilidad real por canal; destapa el hallazgo 3</td></tr>
+        <tr><td>Diagnóstico de capacidad de surtido en CD-Tultitlán (headcount, productividad por turno, layout)</td>
+            <td>Dirección del CEDIS</td><td><span class="pill">4 sem</span></td>
+            <td>Recuperar ~6 h de surtido en la zona de mayor volumen</td></tr>
+        <tr><td>Renegociar SLA / reasignar la ruta Occidente de TransBajio, priorizando la salida de Big Ticket</td>
+            <td>Transporte + Compras</td><td><span class="pill">6 sem</span></td>
+            <td>+8 pts de OTIF zonal · ~$4.5 M MXN de valor protegido</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>Caso de estudio de analítica logística: generación de datos sintéticos con señales
+     plantadas, limpieza auditada, definición de KPIs, diagnóstico de cuellos de botella con
+     control de confusores e intervalos de Wilson, y tablero.</p>
+  <p class="stack" style="margin-top:8px">python · pandas · numpy · SQL (DuckDB) · Chart.js · Power BI / Looker Studio (modelo en /bi)</p>
+</footer>
+
+</div>
+
+<script>
+const DATA = {"kpis": {"otif": 0.9569, "p90_h": 77.0, "envios": 59615, "valor_riesgo_mxn": 10008258.0}, "meses": ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"], "otif_mensual": [0.9641, 0.9606, 0.9649, 0.9604, 0.9415, 0.9606], "surtido_cedis": {"CD-GUADALAJARA": [8.3, 7.9, 8.1, 8.2, 10.9, 8.0], "CD-HUEHUETOCA": [8.1, 8.0, 8.2, 8.1, 11.1, 8.1], "CD-MONTERREY": [8.2, 8.4, 8.3, 8.0, 11.3, 8.3], "CD-PUEBLA": [8.3, 7.9, 8.1, 8.2, 10.9, 8.3], "CD-TULTITLAN": [8.2, 8.3, 8.5, 9.2, 16.1, 14.3]}, "canal": {"Click & Collect": {"envios": 17422, "operativo": 0.907, "percibido": 0.5519}, "Domicilio": {"envios": 33014, "operativo": 0.9741, "percibido": 0.9741}, "Tienda a Tienda": {"envios": 9179, "operativo": 0.9901, "percibido": 0.9901}}, "transportistas_occidente": {"TransBajio": {"envios": 1481, "otif": 0.609}, "EnviaYa": {"envios": 1688, "otif": 0.8833}, "Flota Propia": {"envios": 2333, "otif": 0.9061}, "LogiMex": {"envios": 2667, "otif": 0.9063}, "PaqueteExpress": {"envios": 1360, "otif": 0.9096}}, "otif_zona_occidente": 0.8564, "cc_tiendas_top": {"T1058": {"envios": 249, "h": 64.6}, "T1052": {"envios": 259, "h": 62.0}, "T1027": {"envios": 295, "h": 58.4}, "T1003": {"envios": 307, "h": 57.8}, "T1011": {"envios": 294, "h": 55.0}, "T1040": {"envios": 284, "h": 53.9}}, "cc_mediana_red": 18.2, "big_ticket": {"Big Ticket": {"envios": 18472, "otif": 0.9774, "valor": 328936349.0, "valor_riesgo": 7552565.0}, "Resto": {"envios": 41143, "otif": 0.9477, "valor": 47151095.0, "valor_riesgo": 2455692.0}}};
+
+/* ---------- tokens compartidos con los charts ---------- */
+const C = { tinta:'#16202B', acero:'#5B6B7C', rosa:'#D5127D', petroleo:'#0F766E',
+            gris:'#9AA7B4', linea:'#D9DFE6' };
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.color = C.acero;
+Chart.defaults.borderColor = C.linea;
+const pct = v => (v*100).toFixed(1) + '%';
+
+/* ---------- 1. La trampa del reloj (toggle) ---------- */
+const canales = Object.keys(DATA.canal);
+const notas = {
+  operativo: 'Con el corte en “disponible”, Click & Collect cumple: <b>' +
+             pct(DATA.canal['Click & Collect'].operativo) + '</b>. La operación está sana.',
+  percibido: 'Midiendo hasta que el cliente recoge, C&C cae a <b>' +
+             pct(DATA.canal['Click & Collect'].percibido) +
+             '</b>: castigaríamos a logística por la agenda del cliente.'
+};
+const chCanal = new Chart(document.getElementById('chCanal'), {
+  type:'bar',
+  data:{ labels:canales, datasets:[{ data:canales.map(c=>DATA.canal[c].operativo),
+         backgroundColor:canales.map(()=>C.petroleo), borderRadius:4, maxBarThickness:70 }]},
+  options:{ maintainAspectRatio:false, animation:{duration:600},
+    scales:{ y:{min:0.4, max:1, ticks:{callback:v=>pct(v)}}, x:{grid:{display:false}} },
+    plugins:{ legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>pct(ctx.parsed.y)+' · '+DATA.canal[ctx.label].envios.toLocaleString()+' envíos'}} } }
+});
+function setReloj(modo){
+  const ds = chCanal.data.datasets[0];
+  ds.data = canales.map(c=>DATA.canal[c][modo]);
+  ds.backgroundColor = canales.map(c=>
+      (modo==='percibido' && c==='Click & Collect') ? C.rosa : C.petroleo);
+  chCanal.update();
+  document.getElementById('notaToggle').innerHTML = notas[modo];
+  document.getElementById('btnOp').setAttribute('aria-pressed', modo==='operativo');
+  document.getElementById('btnPe').setAttribute('aria-pressed', modo==='percibido');
+}
+document.getElementById('btnOp').onclick = ()=>setReloj('operativo');
+document.getElementById('btnPe').onclick = ()=>setReloj('percibido');
+setReloj('operativo');
+
+/* ---------- 2. CEDIS: la línea rosa ---------- */
+new Chart(document.getElementById('chCedis'), {
+  type:'line',
+  data:{ labels:DATA.meses,
+    datasets:Object.entries(DATA.surtido_cedis).map(([cedis, serie])=>{
+      const roto = cedis==='CD-TULTITLAN';
+      return { label:cedis, data:serie,
+        borderColor: roto ? C.rosa : C.gris, borderWidth: roto ? 3.5 : 1.6,
+        pointRadius: roto ? 4 : 2.5, pointBackgroundColor: roto ? C.rosa : C.gris,
+        tension:.25 };
+    })},
+  options:{ maintainAspectRatio:false,
+    scales:{ y:{title:{display:true,text:'horas de surtido (mediana)'}} },
+    plugins:{ legend:{position:'bottom', labels:{usePointStyle:true, boxHeight:6}},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y+' h'}} } }
+});
+
+/* ---------- 3. Transportistas en Occidente ---------- */
+const tNombres = Object.keys(DATA.transportistas_occidente);
+new Chart(document.getElementById('chTrans'), {
+  type:'bar',
+  data:{ labels:tNombres,
+    datasets:[{ data:tNombres.map(t=>DATA.transportistas_occidente[t].otif),
+      backgroundColor:tNombres.map(t=>t==='TransBajio'?C.rosa:C.gris),
+      borderRadius:4, maxBarThickness:38 }]},
+  options:{ indexAxis:'y', maintainAspectRatio:false,
+    scales:{ x:{min:0.5, max:1, ticks:{callback:v=>pct(v)},
+      title:{display:true, text:'OTIF operativo · solo zona Occidente · promedio zonal: '+pct(DATA.otif_zona_occidente)}} },
+    plugins:{ legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>pct(ctx.parsed.x)+' · '+DATA.transportistas_occidente[ctx.label].envios.toLocaleString()+' envíos'}} } }
+});
+
+/* ---------- 4. Click & Collect: recolección ---------- */
+const ccT = Object.keys(DATA.cc_tiendas_top);
+new Chart(document.getElementById('chCC'), {
+  type:'bar',
+  data:{ labels:[...ccT, 'Resto de la red (mediana)'],
+    datasets:[{ data:[...ccT.map(t=>DATA.cc_tiendas_top[t].h), DATA.cc_mediana_red],
+      backgroundColor:[...ccT.map(()=>C.rosa), C.petroleo],
+      borderRadius:4, maxBarThickness:34 }]},
+  options:{ indexAxis:'y', maintainAspectRatio:false,
+    scales:{ x:{title:{display:true,text:'horas de “disponible” a recogido (mediana)'}} },
+    plugins:{ legend:{display:false} } }
+});
+
+/* ---------- 5. Big Ticket: piezas vs valor ---------- */
+const bt = DATA.big_ticket;
+const totE = bt['Big Ticket'].envios + bt['Resto'].envios;
+const totV = bt['Big Ticket'].valor + bt['Resto'].valor;
+new Chart(document.getElementById('chBT'), {
+  type:'bar',
+  data:{ labels:['% de los envíos','% del valor de mercancía'],
+    datasets:[
+      { label:'Big Ticket', data:[bt['Big Ticket'].envios/totE, bt['Big Ticket'].valor/totV],
+        backgroundColor:C.rosa, borderRadius:4, maxBarThickness:46 },
+      { label:'Resto', data:[bt['Resto'].envios/totE, bt['Resto'].valor/totV],
+        backgroundColor:C.gris, borderRadius:4, maxBarThickness:46 } ]},
+  options:{ indexAxis:'y', maintainAspectRatio:false,
+    scales:{ x:{stacked:true, max:1, ticks:{callback:v=>Math.round(v*100)+'%'}}, y:{stacked:true, grid:{display:false}} },
+    plugins:{ legend:{position:'bottom', labels:{usePointStyle:true, boxHeight:6}},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+pct(ctx.parsed.x)}} } }
+});
+</script>
+</body>
+</html>
