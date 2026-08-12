@@ -1,0 +1,147 @@
+{
+ "kpis": {
+  "otif": 0.9569,
+  "p90_h": 77.0,
+  "envios": 59615,
+  "valor_riesgo_mxn": 10008258.0
+ },
+ "meses": [
+  "2026-01",
+  "2026-02",
+  "2026-03",
+  "2026-04",
+  "2026-05",
+  "2026-06"
+ ],
+ "otif_mensual": [
+  0.9641,
+  0.9606,
+  0.9649,
+  0.9604,
+  0.9415,
+  0.9606
+ ],
+ "surtido_cedis": {
+  "CD-GUADALAJARA": [
+   8.3,
+   7.9,
+   8.1,
+   8.2,
+   10.9,
+   8.0
+  ],
+  "CD-HUEHUETOCA": [
+   8.1,
+   8.0,
+   8.2,
+   8.1,
+   11.1,
+   8.1
+  ],
+  "CD-MONTERREY": [
+   8.2,
+   8.4,
+   8.3,
+   8.0,
+   11.3,
+   8.3
+  ],
+  "CD-PUEBLA": [
+   8.3,
+   7.9,
+   8.1,
+   8.2,
+   10.9,
+   8.3
+  ],
+  "CD-TULTITLAN": [
+   8.2,
+   8.3,
+   8.5,
+   9.2,
+   16.1,
+   14.3
+  ]
+ },
+ "canal": {
+  "Click & Collect": {
+   "envios": 17422,
+   "operativo": 0.907,
+   "percibido": 0.5519
+  },
+  "Domicilio": {
+   "envios": 33014,
+   "operativo": 0.9741,
+   "percibido": 0.9741
+  },
+  "Tienda a Tienda": {
+   "envios": 9179,
+   "operativo": 0.9901,
+   "percibido": 0.9901
+  }
+ },
+ "transportistas_occidente": {
+  "TransBajio": {
+   "envios": 1481,
+   "otif": 0.609
+  },
+  "EnviaYa": {
+   "envios": 1688,
+   "otif": 0.8833
+  },
+  "Flota Propia": {
+   "envios": 2333,
+   "otif": 0.9061
+  },
+  "LogiMex": {
+   "envios": 2667,
+   "otif": 0.9063
+  },
+  "PaqueteExpress": {
+   "envios": 1360,
+   "otif": 0.9096
+  }
+ },
+ "otif_zona_occidente": 0.8564,
+ "cc_tiendas_top": {
+  "T1058": {
+   "envios": 249,
+   "h": 64.6
+  },
+  "T1052": {
+   "envios": 259,
+   "h": 62.0
+  },
+  "T1027": {
+   "envios": 295,
+   "h": 58.4
+  },
+  "T1003": {
+   "envios": 307,
+   "h": 57.8
+  },
+  "T1011": {
+   "envios": 294,
+   "h": 55.0
+  },
+  "T1040": {
+   "envios": 284,
+   "h": 53.9
+  }
+ },
+ "cc_mediana_red": 18.2,
+ "big_ticket": {
+  "Big Ticket": {
+   "envios": 18472,
+   "otif": 0.9774,
+   "valor": 328936349.0,
+   "valor_riesgo": 7552565.0
+  },
+  "Resto": {
+   "envios": 41143,
+   "otif": 0.9477,
+   "valor": 47151095.0,
+   "valor_riesgo": 2455692.0
+  }
+ }
+}
