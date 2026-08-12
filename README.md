@@ -4,7 +4,7 @@ Análisis end-to-end de una red logística tipo retail departamental: definició
 KPIs de entrega, detección de cuellos de botella con control de confusores y
 significancia estadística, y un tablero interactivo para dirección.
 
->  **[Dashboard interactivo](https://TU_USUARIO.github.io/TU_REPO/dashboard/)** ·
+>  **[Dashboard interactivo](https://lobby9000.github.io/Retail-Business-Data-Cases/dashboard/)** ·
 >  **[Notebook del análisis](analisis.ipynb)**.
 >
 > *Datos sintéticos generados para este caso de estudio (ver `simulador/`); sin
