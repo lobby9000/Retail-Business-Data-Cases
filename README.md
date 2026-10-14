@@ -1,92 +1,69 @@
-# Diagnóstico de cumplimiento logístico de retail omnicanal (1S 2026)
+# Omnichannel retail delivery diagnostics (H1 2026)
 
-Análisis end-to-end de una red logística tipo retail departamental: definición de
-KPIs de entrega, detección de cuellos de botella con control de confusores y
-significancia estadística, y un tablero interactivo para dirección.
+End-to-end analysis of a department-store delivery network: a defensible on-time-in-full (OTIF) KPI, bottlenecks located with confounder control and statistical tests, and an interactive dashboard for management.
 
->  **[Dashboard interactivo](https://lobby9000.github.io/Retail-Business-Data-Cases/dashboard/)** ·
->  **[Notebook del análisis](analisis.ipynb)**.
->
-> *Datos sintéticos generados para este caso de estudio (ver `simulador/`); sin
-> afiliación con ninguna empresa.*
+**[Interactive dashboard](https://lobby9000.github.io/Retail-Business-Data-Cases/dashboard/)** · **[Analysis notebook](analisis.ipynb)** · [Versión en español](README.es.md)
 
-El reporte mensual muestra OTIF global de **95.7%**, arriba de meta, pero
-dirección percibe que "las entregas se sienten más lentas". Entregables: una
-definición defendible del KPI de cumplimiento, la ubicación de los cuellos de
-botella con evidencia, y el costo de no actuar.
+> Synthetic data generated for this case study (see `simulador/`). No affiliation with any company. Code, folder and column names are in Spanish to match the Mexican retail context.
 
-## Cómo está estructurado el análisis
+## The problem
 
-El notebook sigue el flujo de trabajo completo; estas son las decisiones clave en
-cada paso (el detalle, con código anotado y salidas, está en `analisis.ipynb`):
+The monthly report showed an overall OTIF of **95.7%**, above target, yet management felt that deliveries were getting slower. The brief: a defensible definition of the delivery KPI, evidence of where the bottlenecks are, and the cost of doing nothing.
 
-**1. Auditoría antes de calcular.** `shape`, `dtypes`, `duplicated()` sobre la
-llave, `value_counts()` como detector de categorías inconsistentes, y sanity
-checks de valores físicamente imposibles: costos ≤ 0, envíos de 0 piezas
-("envíos fantasma") y entregas anteriores a la orden,  que pueden deberse a husos
-horarios, captura manual o errores manuales. También se cruzan los nulos contra
-el estado del pedido: los 2,325 cancelados explican casi todos los huecos de
-`ts_disponible_cliente`, y el remanente por etapa se propone como **métrica de
-calidad de dato** para el tablero.
+## Highlights
 
-**2. Limpieza con linaje de dato.** Un log registra cada paso: 62,420 registros
-crudos que llevan a la eliminacion de duplicados por llave (verificando primero 
-que los duplicados fueran clones perfectos y no versiones contradictorias). Luego, 
-exclusión de secuencias temporales imposibles y anulación (no borrado) de valores 
-absurdos cuando el resto de la fila sigue siendo confiable.
-Al último, cancelaciones fuera del denominador del KPI. Base final: **59,615 envíos**.
+- **Data lineage:** 62,420 raw records reduced to **59,615 shipments** through a logged cleaning process. Duplicates were confirmed as exact clones before removal, impossible time sequences were excluded, absurd values were nulled rather than deleted, and cancellations were kept out of the KPI denominator.
+- **Two KPIs, not one:** *operational* OTIF (order ready vs promise) and *perceived* OTIF (order in the customer's hands vs promise). In Click & Collect they diverge by about 35 points, which is explained by when customers collect, not by operations.
+- **Peers, not averages:** each store is compared with the stores in its own zone using **Wilson intervals**. Only 1 of 61 stores is significantly worse than its zone.
 
-**3. Definición del KPI.** El OTIF se implementa en dos
-versiones: *operativo* (pedido disponible vs. promesa) y *percibido* (pedido en
-manos del cliente vs. promesa). En Click & Collect se abren ~35 puntos entre
-ambas: la diferencia es la agenda del cliente, no la operación. El KPI logístico
-corta en "disponible"; la recolección se mide aparte como métrica de tienda.
-Para tiempos se reporta **mediana y P90**, no promedio: media > mediana en los
-tres canales (cola derecha).
+## Findings
 
-**4. Segmentación.** El 95.7% global es una compresión con pérdida; se descompone
-por etapa del ciclo (surtido / tránsito / última milla) y por CEDIS × mes,
-canal, zona × transportista y tienda.
-
-**5. Validación estadística.** Ninguna unidad se compara contra el promedio
-global: se compara contra sus **pares** (misma zona), y antes de señalar a una
-tienda se calcula su **intervalo de Wilson**. Una tienda es "foco rojo" solo si
-ni el techo de su intervalo alcanza el OTIF de su zona.
-
-**6. Cuantificación en pesos.** Columna de exposición `valor_riesgo` (valor de
-mercancía de los envíos fuera de promesa).
-
-## Hallazgos
-
-| # | Hallazgo | Evidencia |
+| # | Finding | Evidence |
 |---|---|---|
-| 1 | **CD-Tultitlán se degradó estructuralmente.** Todos los CEDIS empeoran en el pico de mayo (Hot Sale) y se recuperan en junio,  excepto uno, que pasa de ~8 a 14.3 h de surtido y no regresa. | Pivot CEDIS × mes; los otros 4 CEDIS actúan como grupo de control |
-| 2 | **El Ranking de "peores tiendas".** Las 10 peores compartían zona; condicionando por zona, la variable explicativa es TransBajio, que opera 25 pts abajo de sus pares, solo en Occidente (en Norte se comporta normal). Con Wilson, 1 de 61 tiendas es significativamente peor que su zona. | OTIF transportista × zona; IC de Wilson por tienda |
-| 3 | **Seis mostradores de Click & Collect triplican el tiempo de recolección.** El corte logístico ya se cumplía: el problema vive en notificación/mostrador ; hallazgo empaquetado para Operación de Tiendas. | Mediana de h_recoleccion por tienda vs. red |
-| 4 | **La mercancía cara pasa por los nodos rotos.** Big Ticket: ~31% de envíos, ~87% del valor, ~75% de los $10.0M MXN fuera de promesa | Descomposición de valor en riesgo por segmento |
+| 1 | **DC Tultitlán degraded structurally.** Every distribution centre slows down in the May peak (Hot Sale) and recovers in June except one, whose picking time goes from about 8 h to 14.3 h and stays there. | DC × month pivot, with the other four DCs as a control group |
+| 2 | **The "worst stores" ranking is a carrier effect.** The ten worst stores shared a zone. Conditioning on zone, the explanatory variable is the carrier TransBajio, which runs 25 points below its peers in the West zone only. | OTIF by carrier × zone, Wilson interval per store |
+| 3 | **Six Click & Collect counters triple collection time.** The logistics cut-off was already met, so the problem lives in customer notification and counter service. The finding is packaged for Store Operations. | Median collection hours per store vs the network |
+| 4 | **Expensive goods travel through the broken nodes.** Big-ticket items are about 31% of shipments but 87% of value, and 75% of the MXN 10.0M delivered outside the promised window. | Value-at-risk breakdown by segment |
 
-## Estructura del repo
+## Method
+
+1. **Audit before computing.** Shape, dtypes, duplicate keys, category consistency and physically impossible values (non-positive costs, zero-piece shipments, deliveries before the order). Missing values are cross-checked against order status: the 2,325 cancellations explain almost every gap in `ts_disponible_cliente`, and the remainder by stage becomes a data-quality metric on the dashboard.
+2. **Cleaning with lineage.** Every step is logged, from 62,420 raw records to the 59,615-shipment base.
+3. **KPI definition.** Operational and perceived OTIF. Lead times are reported as median and P90 instead of mean, because all three channels are right-skewed.
+4. **Segmentation.** By cycle stage (picking, transit, last mile) and by DC × month, channel, zone × carrier, and store.
+5. **Statistical validation.** Units are compared with their peers. A store is flagged only if even the upper bound of its Wilson interval falls short of its zone's OTIF.
+6. **Impact in money.** A `valor_riesgo` exposure column holds the value of goods delivered outside the promise.
+
+## Repository structure
 
 ```
-├── README.md
-├── analisis.ipynb        Análisis completo, anotado y ejecutado
-├── export_modelo.py      Modelo estrella para BI + agregados del dashboard
-├── datos/                envios.csv · tiendas.csv (insumos)
-├── bi/                   fact_envios · dim_tienda · dim_calendario (generado)
-├── dashboard/            index.html — tablero interactivo (generado data.json)
-└── simulador/            generar_datos.py — generador del dataset sintético
+├── README.md            English (this file)
+├── README.es.md         Spanish version
+├── analisis.ipynb       Full annotated analysis, with outputs
+├── export_modelo.py     Star schema for BI and dashboard aggregates
+├── datos/               envios.csv, tiendas.csv (inputs)
+├── bi/                  fact_envios, dim_tienda, dim_calendario (generated)
+├── dashboard/           index.html, interactive dashboard reading data.json
+└── simulador/           generar_datos.py, synthetic data generator
 ```
 
-## Reproducir
+## Reproduce
 
 ```bash
-pip install pandas numpy
-python3 simulador/generar_datos.py   # regenera datos/ (semilla fija)
-jupyter notebook analisis.ipynb      # o ábrelo directo: ya trae las salidas
-python3 export_modelo.py             # regenera bi/ y dashboard/data.json
+pip install -r requirements.txt
+python3 simulador/generar_datos.py   # regenerates datos/ (fixed seed)
+jupyter notebook analisis.ipynb      # or open it directly: outputs are saved
+python3 export_modelo.py             # regenerates bi/ and dashboard/data.json
 ```
 
 ## Stack
 
-`python` `pandas` `numpy` `SQL` `Chart.js` · modelo listo para
-`Power BI` / `Looker Studio` en `bi/`
+Python · pandas · NumPy · Chart.js · star schema ready for Power BI or Looker Studio (`bi/`)
+
+## Licence
+
+Code released under the [MIT licence](LICENSE).
+
+---
+
+Part of the portfolio of Luis Ángel Quiroz López · [lobby9000.github.io](https://lobby9000.github.io) · [LinkedIn](https://www.linkedin.com/in/llqq) · [GitHub](https://github.com/lobby9000)
