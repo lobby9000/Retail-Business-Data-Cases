@@ -4,6 +4,8 @@ End-to-end analysis of a department-store delivery network: a defensible on-time
 
 **[Interactive dashboard](https://lobby9000.github.io/Retail-Business-Data-Cases/dashboard/)** · **[Analysis notebook](analisis.ipynb)** · [Versión en español](README.es.md)
 
+**Try it in your browser:** the [`retail` demo](https://lobby9000.github.io/professional.html?app=terminal&run=retail) on my site recomputes the Wilson intervals of the 61 stores and flags the same store as the notebook.
+
 > Synthetic data generated for this case study (see `simulador/`). No affiliation with any company. Code, folder and column names are in Spanish to match the Mexican retail context.
 
 ## The problem

@@ -12,6 +12,8 @@ significancia estadística, y un tablero interactivo para dirección.
 > *Datos sintéticos generados para este caso de estudio (ver `simulador/`); sin
 > afiliación con ninguna empresa.*
 
+**Pruébalo en el navegador:** la [demo `retail`](https://lobby9000.github.io/professional.html?app=terminal&run=retail) de mi sitio recalcula los intervalos de Wilson de las 61 tiendas y marca la misma tienda que el notebook.
+
 El reporte mensual muestra OTIF global de **95.7%**, arriba de meta, pero
 dirección percibe que "las entregas se sienten más lentas". Entregables: una
 definición defendible del KPI de cumplimiento, la ubicación de los cuellos de
